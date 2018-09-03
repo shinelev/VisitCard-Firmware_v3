@@ -17,10 +17,14 @@
 #include <avr/pgmspace.h> // descriptor must be stored in flash memory
 #include <avr/eeprom.h> // text file and calibration data is stored in EEPROM
 #include <stdio.h> // allows streaming strings
+#include <stdlib.h>
 
 // configure settings for V-USB then include the V-USB driver so V-USB uses your settings
 #include "usbconfig.h"
 #include "usbdrv.h"
+
+//buttons library
+#include "buttons.h"
 
 //my files
 #include "commons.h"
@@ -72,13 +76,16 @@ typedef struct {
 } keyboard_report_t;
 
 // global variables
-
 static keyboard_report_t keyboard_report;
 #define keyboard_report_reset() keyboard_report.modifier=0;keyboard_report.reserved=0;keyboard_report.keycode[0]=0;keyboard_report.keycode[1]=0;keyboard_report.keycode[2]=0;keyboard_report.keycode[3]=0;keyboard_report.keycode[4]=0;keyboard_report.keycode[5]=0;
 static uint8_t idle_rate = 500 / 4; // see HID1_11.pdf sect 7.2.4
 static uint8_t protocol_version = 0; // see HID1_11.pdf sect 7.2.6
 static uint8_t LED_state = 0; // see HID1_11.pdf appendix B section 1
 static uint8_t blink_count = 0; // keep track of how many times caps lock have toggled
+
+uint8_t seed EEMEM; //variable for function rand()
+uint8_t Num EEMEM;//counter for number of mcu start
+uint8_t morze[4] EEMEM; //array of morse code in eeprom
 
 // see http://vusb.wikidot.com/driver-api
 // constants are found in usbdrv.h
@@ -349,9 +356,156 @@ void init_cpu() {
   PORTC |= (1 << PC2)|(1 << PC3)|(1 << PC4)|(1 << PC5); //Enable pull-up
 }
 
+void generate_full_code(uint8_t tmp) {
+  int randomValue = 0;
+  srand(tmp);
+  randomValue = rand();
+  uint8_t tempCode3[3] = {10, 11, 12}; //temp array for code, 3 digits
+  uint8_t tempCode2[2] = {10, 11}; //temp array for code, 2 digits
+
+  //generate first number of code
+  if (randomValue < 8191) {
+    //pCode[0] = 1;
+    eeprom_write_byte(&morze[0], 1);
+    tempCode3[0] = 2;
+    tempCode3[1] = 3;
+    tempCode3[2] = 4;
+  }
+  if ((randomValue > 8191) & (randomValue < 16382)) {
+    //pCode[0] = 2;
+    eeprom_write_byte(&morze[0], 2);
+    tempCode3[0] = 1;
+    tempCode3[1] = 3;
+    tempCode3[2] = 4;
+  }
+  if ((randomValue > 16382) & (randomValue < 24573)) {
+    //pCode[0] = 3;
+    eeprom_write_byte(&morze[0], 3);
+    tempCode3[0] = 1;
+    tempCode3[1] = 2;
+    tempCode3[2] = 4;
+  }
+  if (randomValue > 24573) {
+    //pCode[0] = 4;
+    eeprom_write_byte(&morze[0], 4);
+    tempCode3[0] = 1;
+    tempCode3[1] = 2;
+    tempCode3[2] = 3;
+  }
+
+  randomValue ^= randomValue; //xor for randomvalue
+
+  if (randomValue < 10922) {
+    eeprom_write_byte(&morze[1], tempCode3[1]);
+    //pCode[1] = tempCode3[1];
+    for (uint8_t i = 1; i < 5; i++) {
+      if ((eeprom_read_byte(&morze[0]) != i) & (eeprom_read_byte(&morze[1]) != i)) {
+        tempCode2[0] = i;
+        for (uint8_t j = 1; j < 5; j++) {
+          if ((eeprom_read_byte(&morze[0]) != j) & (eeprom_read_byte(&morze[1]) != j) & (tempCode2[0] != j)) {
+            tempCode2[1] = j;
+            break;
+          }
+        }
+      }
+    }
+  }
+  if ((randomValue > 10922) & (randomValue < 21844)) {
+    //pCode[1] = tempCode3[2];
+    eeprom_write_byte(&morze[1], tempCode3[2]);
+    for (uint8_t i = 1; i < 5; i++) {
+      if ((eeprom_read_byte(&morze[0]) != i) & (eeprom_read_byte(&morze[1]) != i)) {
+        tempCode2[0] = i;
+        for (uint8_t j = 1; j < 5; j++) {
+          if ((eeprom_read_byte(&morze[0]) != j) & (eeprom_read_byte(&morze[1]) != j) & (tempCode2[0] != j)) {
+            tempCode2[1] = j;
+            break;
+          }
+        }
+      }
+    }
+  }
+  if ((randomValue > 16382) & (randomValue < RAND_MAX)) {
+    //pCode[1] = tempCode3[0];
+    eeprom_write_byte(&morze[1], tempCode3[0]);
+    for (uint8_t i = 1; i < 5; i++) {
+      if ((eeprom_read_byte(&morze[0]) != i) & (eeprom_read_byte(&morze[1]) != i)) {
+        tempCode2[0] = i;
+        for (uint8_t j = 1; j < 5; j++) {
+          if ((eeprom_read_byte(&morze[0]) != j) & (eeprom_read_byte(&morze[1]) != j) & (tempCode2[0] != j)) {
+            tempCode2[1] = j;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  eeprom_write_byte(&morze[2], tempCode2[1]);
+  eeprom_write_byte(&morze[3], tempCode2[0]);
+}
+
+void true_led_off() {
+  LED1_OFF();
+  LED3_OFF();
+  LED5_OFF();
+  LED7_OFF();
+}
+
+void fake_led_off() {
+  LED2_OFF();
+  LED4_OFF();
+  LED8_OFF();
+  LED6_OFF();
+}
+
+void all_led_off() {
+  LED1_OFF();
+  LED2_OFF();
+  LED3_OFF();
+  LED4_OFF();
+  LED5_OFF();
+  LED6_OFF();
+  LED7_OFF();
+  LED8_OFF();
+  LED9_OFF();
+  LED10_OFF();
+  LED11_OFF();
+}
+
+void all_led_on() {
+  LED1_ON();
+  LED2_ON();
+  LED3_ON();
+  LED4_ON();
+  LED5_ON();
+  LED6_ON();
+  LED7_ON();
+  LED8_ON();
+  LED9_ON();
+  LED10_ON();
+  LED11_ON();
+}
+
+void check_buttons() {
+  
+}
+
 int main()
 {	
   init_cpu();
+
+  //next actions counts number of mcu starts
+  uint8_t tmp = eeprom_read_byte(&Num); //read value from eeprom using address of Num
+  tmp++;
+  eeprom_write_byte(&Num, tmp); //write value of tmp to Num
+  eeprom_write_byte(&seed, tmp);
+  tmp = eeprom_read_byte(&seed);
+
+  uint8_t *pCode = morze;
+
+  //eeprom_write_byte(&morze_count, 0);
+  generate_full_code(tmp);
   
 	stdout = &mystdout; // set default stream
 	
@@ -370,8 +524,14 @@ int main()
 	
 	sei(); // enable interrupts
 
-  //test POWER ON led
+ /***************************************/
+ //TEST BLOCK
+
+ //test POWER ON led
   LED10_ON();
+
+
+ /**************************************/
 	
 	while (1) // main loop, do forever
 	{
@@ -381,9 +541,11 @@ int main()
 			// PLACE TEXT HERE
 			//puts_P(PSTR(" ")); // test size
 			puts_P(PSTR("RMCSoft LLC\nCharlotte, NC\n933 Louise Ave., Suite 101S, Charlotte, NC 28204, USA\n(980) 201-2460\n\nNick Gritsenko\nnick@rmcsoft.com\n\nOlga Muller\nolga.z.muller@gmail.com"));
-			
+
 			blink_count = 0; // reset
 		}
+
+    check_buttons();
 		
 		// perform usb related background tasks
 		usbPoll(); // this needs to be called at least once every 10 ms
