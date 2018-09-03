@@ -22,6 +22,9 @@
 #include "usbconfig.h"
 #include "usbdrv.h"
 
+//my files
+#include "commons.h"
+
 // USB HID report descriptor for boot protocol keyboard
 // see HID1_11.pdf appendix B section 1
 // USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH is defined in usbconfig
@@ -332,8 +335,24 @@ void type_out_char(uint8_t ascii, FILE *stream)
 
 static FILE mystdout = FDEV_SETUP_STREAM(type_out_char, NULL, _FDEV_SETUP_WRITE); // setup writing stream
 
+void init_cpu() {
+
+  //Init port B
+  DDRB = 0;
+  DDRB |= (1 << PB0)|(1 << PB1)|(1 << PB2)|(1 << PB4)|(1 << PB6); //Pin 0, 1, 2, 4, 6 - output
+  PORTB &= ~((1 << PB0)|(1 << PB1)|(1 << PB2)|(1 << PB4)|(1 << PB6)); //Set to 0 on output
+
+  //Init port C
+  DDRC = 0; //Input
+  DDRC |= (1 << PC0)|(1 << PC1); //Pin 0,1 - output
+  PORTC &= ~((1 << PC0)|(1 << PC1)); //Set to 0
+  PORTC |= (1 << PC2)|(1 << PC3)|(1 << PC4)|(1 << PC5); //Enable pull-up
+}
+
 int main()
 {	
+  init_cpu();
+  
 	stdout = &mystdout; // set default stream
 	
 	// initialize report (I never assume it's initialized to 0 automatically)
@@ -350,6 +369,9 @@ int main()
 	usbInit();
 	
 	sei(); // enable interrupts
+
+  //test POWER ON led
+  LED10_ON();
 	
 	while (1) // main loop, do forever
 	{
