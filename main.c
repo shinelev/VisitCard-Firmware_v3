@@ -83,6 +83,10 @@ static uint8_t protocol_version = 0; // see HID1_11.pdf sect 7.2.6
 static uint8_t LED_state = 0; // see HID1_11.pdf appendix B section 1
 static uint8_t blink_count = 0; // keep track of how many times caps lock have toggled
 
+unsigned char key; //current key
+uint8_t morze_count = 0; //variable-flag when guessing morse
+uint8_t current_number = 0; //current number for morze code
+
 uint8_t seed EEMEM; //variable for function rand()
 uint8_t Num EEMEM;//counter for number of mcu start
 uint8_t morze[4] EEMEM; //array of morse code in eeprom
@@ -353,7 +357,7 @@ void init_cpu() {
   DDRC = 0; //Input
   DDRC |= (1 << PC0)|(1 << PC1); //Pin 0,1 - output
   PORTC &= ~((1 << PC0)|(1 << PC1)); //Set to 0
-  PORTC |= (1 << PC2)|(1 << PC3)|(1 << PC4)|(1 << PC5); //Enable pull-up
+  PORTC |= (1 << PC2)|(1 << PC3)|(1 << PC4)|(1 << PC5); //Enable pull-up TODO: Так как использую библиотеку, то возможно стоит убрать, так как там уже переопредеяется
 }
 
 void generate_full_code(uint8_t tmp) {
@@ -487,13 +491,98 @@ void all_led_on() {
   LED11_ON();
 }
 
-void check_buttons() {
-  
+void timer0_init() {
+  TCCR0 |= (1 << CS00)|(0 << CS01)|(1 << CS02); //prescaler 1024 - 16 ms
+  TCNT0 = 100;
+  TIMSK |= (1 << TOIE0); //enable overflow interrupt
+}
+
+//interrupt, pressed button
+ISR(TIMER0_OVF_vect) {
+  BUT_Debrief();
+  usbPoll();
+  TCNT0 = 100;}
+
+
+
+
+void check_button() {
+  key = BUT_GetKey();
+  if (morze_count == 5) {
+    cli(); //disable interrupt
+    all_led_on(); //TODO нужно проверить и исправить
+  } else {
+    switch (key) {
+      case KEY_1: {
+        if (current_number == 1) {
+          fake_led_off();
+          LED1_ON();
+          morze_count++;
+          current_number = eeprom_read_byte(morze[morze_count]);
+          } else {
+          morze_count = 0;
+          true_led_off();
+          LED2_ON();
+        }
+        usbPoll();
+        break;
+      }
+      case KEY_2: {
+        if (current_number == 2) {
+          fake_led_off();
+          LED3_ON();
+          morze_count++;
+          current_number = eeprom_read_byte(morze[morze_count]);
+          } else {
+          morze_count = 0;
+          true_led_off();
+          LED4_ON();
+        }
+        usbPoll();
+        break;
+      }
+      case KEY_3: {
+        if (current_number == 3) {
+          fake_led_off();
+          LED5_ON();
+          morze_count++;
+          current_number = eeprom_read_byte(morze[morze_count]);
+          } else {
+          morze_count = 0;
+          true_led_off();
+          LED6_ON();
+        }
+        usbPoll();
+        break;
+      }
+      case KEY_4: {
+        if (current_number == 1) {
+          fake_led_off();
+          LED7_ON();
+          morze_count++;
+          current_number = eeprom_read_byte(morze[morze_count]);
+          } else {
+          morze_count = 0;
+          true_led_off();
+          LED8_ON();
+        }
+        usbPoll();
+        break;
+      }
+    }
+  }  
 }
 
 int main()
 {	
+  //init ports of CPU
   init_cpu();
+
+  //inits buttons via library
+  BUT_Init(); 
+
+  //init timer0 for button library
+  timer0_init();
 
   //next actions counts number of mcu starts
   uint8_t tmp = eeprom_read_byte(&Num); //read value from eeprom using address of Num
@@ -506,6 +595,7 @@ int main()
 
   //eeprom_write_byte(&morze_count, 0);
   generate_full_code(tmp);
+  current_number = eeprom_read_byte(pCode[0]); //set first morse number as default
   
 	stdout = &mystdout; // set default stream
 	
@@ -528,13 +618,16 @@ int main()
  //TEST BLOCK
 
  //test POWER ON led
-  LED10_ON();
-
+  LED10_ON();  
 
  /**************************************/
 	
+
 	while (1) // main loop, do forever
 	{
+    
+    usbPoll();
+
 		if (blink_count > 2) // activated by blinking lights
 		{
 			
@@ -544,9 +637,9 @@ int main()
 
 			blink_count = 0; // reset
 		}
-
-    check_buttons();
-		
+    
+    check_button();        
+    		
 		// perform usb related background tasks
 		usbPoll(); // this needs to be called at least once every 10 ms
 		// this is also called in send_report_once

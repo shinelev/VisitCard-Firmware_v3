@@ -29,10 +29,10 @@
 
 //коды, которые будут записыватьс€ в буфер
 #define KEY_NULL      0
-#define KEY_1     1
-#define KEY_2    2
-#define KEY_3        3
-#define KEY_4      4
+#define KEY_4     4    /*BUTTON4*/
+#define KEY_2    2     /*BUTTON2*/
+#define KEY_3        3 /*BUTTON3*/
+#define KEY_1      1   /*BUTTON1*/
 
 //сколько циклов опроса кнопка должна удерживатьс€
 #define THRESHOLD 20
