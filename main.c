@@ -134,22 +134,8 @@ usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
 	}
 	
 	LED_state = data[0];
-	
-	#if !defined(__AVR_ATtiny85__) && !defined(__AVR_ATtiny45__) && !defined(__AVR_ATtiny25__)
-	 // LED lights for debug
-	if (bit_is_set(LED_state, 1))
-	{
-		DDRD |= _BV(0);
-		PORTD |= _BV(0);
-	}
-	else
-	{
-		DDRD |= _BV(0);
-		PORTD &= ~_BV(0);
-	}
-	#endif
-	
-	return 1; // 1 byte read
+  
+  return 1; // 1 byte read
 }
 
 // translates ASCII to appropriate keyboard report, taking into consideration the status of caps lock
