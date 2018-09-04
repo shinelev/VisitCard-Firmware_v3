@@ -59,7 +59,6 @@ uint16_t const dotTime EEMEM = 0xFA0;//0x1458;//0x3D09; //dec 15625 1 second for
  void play_morse_symbol(uint8_t symbol) {
   //Timer1 init
   timer1_init();
-
   uint16_t work_time = eeprom_read_word(&dotTime);
   switch (symbol) {
     case 1: {

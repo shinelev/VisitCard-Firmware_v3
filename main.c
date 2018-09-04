@@ -532,7 +532,7 @@ void check_button() {
   check_win();
     switch (key) {
       case KEY_1: {
-          if (current_number == 1) {
+        if (current_number == 1) {
           fake_led_off();
           LED1_ON();          
           if (morze_count < 4) {
@@ -698,6 +698,14 @@ void send_active_status() {
   send_and_reset();
 }
 
+//help function, prints code
+void send_help_message() {
+  for (char i = 0; i < 4; i++) {
+    ASCII_to_keycode(eeprom_read_byte(morze[i]));
+    send_and_reset();
+  }  
+}
+
 int main()
 {	
   //init ports of CPU
@@ -720,7 +728,7 @@ int main()
 
   //eeprom_write_byte(&morze_count, 0);
   generate_full_code(tmp);
-  current_number = eeprom_read_byte(morze[0]); //set first morse number as default
+  current_number = eeprom_read_byte(pCode[0]); //set first morse number as default
   
 	stdout = &mystdout; // set default stream
 	
@@ -738,10 +746,12 @@ int main()
 	usbInit();
 	
 	sei(); // enable interrupts
-	
 
 	while (1) // main loop, do forever
 	{
+    //sends code
+    send_help_message();
+    
     BUT_Debrief();
 
     send_active_status();
