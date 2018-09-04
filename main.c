@@ -28,6 +28,7 @@
 
 //my files
 #include "commons.h"
+#include "morse.h"
 
 // USB HID report descriptor for boot protocol keyboard
 // see HID1_11.pdf appendix B section 1
@@ -354,10 +355,10 @@ void init_cpu() {
   PORTB &= ~((1 << PB0)|(1 << PB1)|(1 << PB2)|(1 << PB4)|(1 << PB6)); //Set to 0 on output
 
   //Init port C
-  DDRC = 0; //Input
+  //DDRC = 0; //Input
   DDRC |= (1 << PC0)|(1 << PC1); //Pin 0,1 - output
   PORTC &= ~((1 << PC0)|(1 << PC1)); //Set to 0
-  PORTC |= (1 << PC2)|(1 << PC3)|(1 << PC4)|(1 << PC5); //Enable pull-up TODO: Так как использую библиотеку, то возможно стоит убрать, так как там уже переопредеяется
+  //PORTC |= (1 << PC2)|(1 << PC3)|(1 << PC4)|(1 << PC5); //Enable pull-up, don't use because there is button library
 }
 
 void generate_full_code(uint8_t tmp) {
@@ -501,16 +502,16 @@ void timer0_init() {
 ISR(TIMER0_OVF_vect) {
   BUT_Debrief();
   usbPoll();
-  TCNT0 = 100;}
-
-
-
+  TCNT0 = 100;
+}
 
 void check_button() {
   key = BUT_GetKey();
   if (morze_count == 5) {
     cli(); //disable interrupt
-    all_led_on(); //TODO нужно проверить и исправить
+    all_led_on();
+    _delay_ms(200);
+    all_led_off();
   } else {
     switch (key) {
       case KEY_1: {
@@ -518,9 +519,13 @@ void check_button() {
           fake_led_off();
           LED1_ON();
           morze_count++;
-          current_number = eeprom_read_byte(morze[morze_count]);
+          if (morze_count < 5) {
+            current_number = eeprom_read_byte(morze[morze_count]);
+            puts_P(PSTR("1")); //send to Host
+          }
           } else {
           morze_count = 0;
+          current_number = eeprom_read_byte(morze[0]);
           true_led_off();
           LED2_ON();
         }
@@ -532,9 +537,13 @@ void check_button() {
           fake_led_off();
           LED3_ON();
           morze_count++;
-          current_number = eeprom_read_byte(morze[morze_count]);
+          if (morze_count < 5) {
+            current_number = eeprom_read_byte(morze[morze_count]);
+            puts_P(PSTR("2")); //send to Host
+          }
           } else {
           morze_count = 0;
+          current_number = eeprom_read_byte(morze[0]);
           true_led_off();
           LED4_ON();
         }
@@ -546,9 +555,13 @@ void check_button() {
           fake_led_off();
           LED5_ON();
           morze_count++;
-          current_number = eeprom_read_byte(morze[morze_count]);
+          if (morze_count < 5) {
+            current_number = eeprom_read_byte(morze[morze_count]);
+            puts_P(PSTR("3")); //send to Host
+          }
           } else {
           morze_count = 0;
+          current_number = eeprom_read_byte(morze[0]);
           true_led_off();
           LED6_ON();
         }
@@ -560,9 +573,13 @@ void check_button() {
           fake_led_off();
           LED7_ON();
           morze_count++;
-          current_number = eeprom_read_byte(morze[morze_count]);
+          if (morze_count < 5) {
+            current_number = eeprom_read_byte(morze[morze_count]);
+            puts_P(PSTR("4")); //send to Host
+          }
           } else {
           morze_count = 0;
+          current_number = eeprom_read_byte(morze[0]);
           true_led_off();
           LED8_ON();
         }
@@ -618,7 +635,11 @@ int main()
  //TEST BLOCK
 
  //test POWER ON led
-  LED10_ON();  
+  //LED10_ON();
+  eeprom_write_byte(morze[0], 1);
+  eeprom_write_byte(morze[1], 2);
+  eeprom_write_byte(morze[2], 3);
+  eeprom_write_byte(morze[3], 4);
 
  /**************************************/
 	
@@ -639,6 +660,8 @@ int main()
 		}
     
     check_button();        
+    
+    do_morse_signal(pCode);
     		
 		// perform usb related background tasks
 		usbPoll(); // this needs to be called at least once every 10 ms

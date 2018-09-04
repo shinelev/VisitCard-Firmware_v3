@@ -45,7 +45,7 @@
 /******************************************************************************************
 * Macroses for buttons
 */
-#define Button1 PINC2
-#define Button2 PINC3
-#define Button3 PINC4
-#define Button4 PINC5
+//#define Button1 PINC2
+//#define Button2 PINC3
+//#define Button3 PINC4
+//#define Button4 PINC5

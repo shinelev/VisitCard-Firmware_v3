@@ -18,21 +18,21 @@
 
 //порт, к которому подключены кнопки
 #define PORT_BUTTON 	PORTC
-#define PIN_BUTTON 	PINC
+#define PIN_BUTTON 	  PINC
 #define DDRX_BUTTON 	DDRC
 
 //номера выводов, к которым подключены кнопки
 #define BUTTON1 		2
 #define BUTTON2 		3
-#define BUTTON3		4
+#define BUTTON3		  4
 #define BUTTON4 		5
 
 //коды, которые будут записываться в буфер
 #define KEY_NULL      0
-#define KEY_4     4    /*BUTTON4*/
-#define KEY_2    2     /*BUTTON2*/
-#define KEY_3        3 /*BUTTON3*/
-#define KEY_1      1   /*BUTTON1*/
+#define KEY_1         1    /*BUTTON1*/
+#define KEY_2         2    /*BUTTON2*/
+#define KEY_3         3    /*BUTTON3*/
+#define KEY_4         4    /*BUTTON4*/
 
 //сколько циклов опроса кнопка должна удерживаться
 #define THRESHOLD 20

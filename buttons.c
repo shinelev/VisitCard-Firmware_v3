@@ -22,14 +22,14 @@ void BUT_Debrief(void)
 unsigned char key;
 
   //последовательный опрос выводов мк
-  if (BitIsClear(PIN_BUTTON, BUTTON4))     
-    key = KEY_4;
+  if (BitIsClear(PIN_BUTTON, BUTTON1))     
+    key = KEY_1;
   else if (BitIsClear(PIN_BUTTON, BUTTON2))    
     key = KEY_2;
   else if (BitIsClear(PIN_BUTTON, BUTTON3))        
     key = KEY_3;        
-  else if (BitIsClear(PIN_BUTTON, BUTTON1))      
-    key = KEY_1;
+  else if (BitIsClear(PIN_BUTTON, BUTTON4))      
+    key = KEY_4;
   else {
     key = KEY_NULL;
   }

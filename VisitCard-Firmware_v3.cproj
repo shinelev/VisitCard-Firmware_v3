@@ -133,6 +133,12 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="morse.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="morse.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="oddebug.c">
       <SubType>compile</SubType>
     </Compile>
