@@ -8,9 +8,9 @@
 /******************************************************************************************
  * Macroses for leds
  */
-#define LED1 PORTC0 
+#define LED1 PORTC1 
 #define LED2 PORTD1
-#define LED3 PORTC1
+#define LED3 PORTC0
 #define LED4 PORTD3
 #define LED5 PORTD4
 #define LED6 PORTD5

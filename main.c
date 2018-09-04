@@ -505,9 +505,16 @@ ISR(TIMER0_OVF_vect) {
   TCNT0 = 100;
 }
 
+void timer1_init() {
+  //init 16bit T1 Counter, 1 sec = TCNT < 15625
+  TCCR1A = 0x00;
+  TCCR1B = 0x05; //Prescaler 1024
+  TCNT1 = 0x00;
+}
+
 void check_win() {
   if (morze_count == 4) {    
-    puts_P(PSTR("\nCongratulations!!! You win the PRIZE, but your princess is in another castle"));
+    //puts_P(PSTR("\nCongratulations!!! You win the PRIZE, but your princess is in another castle"));
     while(1) {
       usbPoll();
       all_led_off();
@@ -525,20 +532,21 @@ void check_button() {
   check_win();
     switch (key) {
       case KEY_1: {
-        if (current_number == 1) {
+          if (current_number == 1) {
           fake_led_off();
           LED1_ON();          
           if (morze_count < 4) {
             morze_count++;
             current_number = eeprom_read_byte(morze[morze_count]);
-            puts_P(PSTR("#1")); //send to Host
+            send_key1_true();
           }
           } else {
           morze_count = 0;
           current_number = eeprom_read_byte(morze[0]);
           true_led_off();
+          fake_led_off();
           LED2_ON();
-          puts_P(PSTR("?1")); //send to Host, error
+          send_key1_false();
         }
         usbPoll();
         break;
@@ -550,14 +558,15 @@ void check_button() {
           if (morze_count < 4) {
             morze_count++;
             current_number = eeprom_read_byte(morze[morze_count]);
-            puts_P(PSTR("#2")); //send to Host
+            send_key2_true();
           }
           } else {
           morze_count = 0;
           current_number = eeprom_read_byte(morze[0]);
           true_led_off();
+          fake_led_off();
           LED4_ON();
-          puts_P(PSTR("?2")); //send to Host, error
+          send_key2_false();
         }
         usbPoll();
         break;
@@ -569,14 +578,15 @@ void check_button() {
           if (morze_count < 4) {
              morze_count++;
             current_number = eeprom_read_byte(morze[morze_count]);
-            puts_P(PSTR("#3")); //send to Host
+            send_key3_true();
           }
           } else {
           morze_count = 0;
           current_number = eeprom_read_byte(morze[0]);
           true_led_off();
+          fake_led_off();
           LED6_ON();
-          puts_P(PSTR("?3")); //send to Host, error
+         send_key3_false();
         }
         usbPoll();
         break;
@@ -588,19 +598,104 @@ void check_button() {
           if (morze_count < 4) {
             morze_count++;
             current_number = eeprom_read_byte(morze[morze_count]);
-            puts_P(PSTR("#4")); //send to Host
+            send_key4_true();
           }
           } else {
           morze_count = 0;
           current_number = eeprom_read_byte(morze[0]);
           true_led_off();
+          fake_led_off();
           LED8_ON();
-          puts_P(PSTR("?4")); //send to Host, error
+          send_key4_false();
         }
         usbPoll();
         break;
       }
     } 
+}
+
+//prints address of RMCSoft if CAPS pressed
+void print_address() {
+  if (blink_count > 2) // activated by blinking lights
+  {    
+    //Text message
+    puts_P(PSTR("RMCSoft LLC\nCharlotte, NC\n933 Louise Ave., Suite 101S, Charlotte, NC 28204, USA\n(980) 201-2460\n\nNick Gritsenko\nnick@rmcsoft.com\n\nOlga Muller\nolga.z.muller@gmail.com"));
+
+    blink_count = 0; // reset
+  }
+}
+
+//function for internal work
+void send_and_reset() {
+  send_report_once();
+  keyboard_report_reset(); // release keys
+  send_report_once();
+}
+
+/********************************************
+*next functions send statuses to browser
+*/
+void send_key1_true()
+{ 
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x14; //q
+  send_and_reset();
+}
+
+void send_key1_false()
+{
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x1A; //w
+  send_and_reset();
+}
+
+void send_key2_true()
+{
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x08; //e
+  send_and_reset();
+}
+
+void send_key2_false()
+{
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x15; //r
+  send_and_reset();
+}
+
+void send_key3_true()
+{
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x17; //t
+  send_and_reset();
+}
+
+void send_key3_false()
+{
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x1C; //y
+  send_and_reset();
+}
+
+void send_key4_true()
+{
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x18; //u
+  send_and_reset();
+}
+
+void send_key4_false()
+{
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x0C; //i
+  send_and_reset();
+}
+
+//send CTRL+ALT+A is alive status (connected to host)
+void send_active_status() {
+  keyboard_report.modifier = (1<<0) + (1<<2); //ctrl + alt
+  keyboard_report.keycode[0] = 0x04; //a
+  send_and_reset();
 }
 
 int main()
@@ -625,7 +720,7 @@ int main()
 
   //eeprom_write_byte(&morze_count, 0);
   generate_full_code(tmp);
-  current_number = eeprom_read_byte(pCode[0]); //set first morse number as default
+  current_number = eeprom_read_byte(morze[0]); //set first morse number as default
   
 	stdout = &mystdout; // set default stream
 	
@@ -643,44 +738,30 @@ int main()
 	usbInit();
 	
 	sei(); // enable interrupts
-
- /***************************************/
- //TEST BLOCK
-
- //test POWER ON led
-  //LED10_ON();
-  eeprom_write_byte(morze[0], 1);
-  eeprom_write_byte(morze[1], 2);
-  eeprom_write_byte(morze[2], 3);
-  eeprom_write_byte(morze[3], 4);
-
- /**************************************/
 	
 
 	while (1) // main loop, do forever
 	{
+    BUT_Debrief();
+
+    send_active_status();
 
     check_win();
     
     usbPoll();
 
-		if (blink_count > 2) // activated by blinking lights
-		{
-			
-			// PLACE TEXT HERE
-			//puts_P(PSTR(" ")); // test size
-			puts_P(PSTR("RMCSoft LLC\nCharlotte, NC\n933 Louise Ave., Suite 101S, Charlotte, NC 28204, USA\n(980) 201-2460\n\nNick Gritsenko\nnick@rmcsoft.com\n\nOlga Muller\nolga.z.muller@gmail.com"));
+    BUT_Debrief();
 
-			blink_count = 0; // reset
-		}
+		print_address();
     
     check_button();        
     
-    do_morse_signal(pCode);
-    		
-		// perform usb related background tasks
-		usbPoll(); // this needs to be called at least once every 10 ms
-		// this is also called in send_report_once
+    do_morse_signal(pCode);    		
+		
+		usbPoll();
+    
+    BUT_Debrief(); 
+		
 	}
 	
 	return 0;

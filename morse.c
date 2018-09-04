@@ -37,7 +37,7 @@ uint8_t const one_morse[] EEMEM = {0, 1, 1, 1, 1}; //array for 1
 uint8_t const two_morse[] EEMEM = {0, 0, 1, 1, 1}; //array for 2
 uint8_t const three_morse[] EEMEM = {0, 0, 0, 1, 1}; //array for 3
 uint8_t const four_morse[] EEMEM = {0, 0, 0, 0, 1}; //array for 4
-uint16_t const dotTime EEMEM = 0x1458;//0x3D09; //dec 15625 1 second for 16Mhz and prescaler 1024
+uint16_t const dotTime EEMEM = 0xFA0;//0x1458;//0x3D09; //dec 15625 1 second for 16Mhz and prescaler 1024
 
 //play full signal
  void do_morse_signal(uint8_t *pCode) {
@@ -58,10 +58,7 @@ uint16_t const dotTime EEMEM = 0x1458;//0x3D09; //dec 15625 1 second for 16Mhz a
 
  void play_morse_symbol(uint8_t symbol) {
   //Timer1 init
-  //init 16bit T1 Counter, 1 sec = TCNT < 15625
-  TCCR1A = 0x00;
-  TCCR1B = 0x05; //Prescaler 1024
-  TCNT1 = 0x00;
+  timer1_init();
 
   uint16_t work_time = eeprom_read_word(&dotTime);
   switch (symbol) {
