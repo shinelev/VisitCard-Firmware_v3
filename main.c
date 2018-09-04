@@ -505,29 +505,40 @@ ISR(TIMER0_OVF_vect) {
   TCNT0 = 100;
 }
 
+void check_win() {
+  if (morze_count == 4) {    
+    puts_P(PSTR("\nCongratulations!!! You win the PRIZE, but your princess is in another castle"));
+    while(1) {
+      usbPoll();
+      all_led_off();
+      _delay_ms(500);
+      all_led_on();
+      usbPoll();
+      _delay_ms(500);
+      usbPoll();      
+    }    
+  }
+}
+
 void check_button() {
   key = BUT_GetKey();
-  if (morze_count == 5) {
-    cli(); //disable interrupt
-    all_led_on();
-    _delay_ms(200);
-    all_led_off();
-  } else {
+  check_win();
     switch (key) {
       case KEY_1: {
         if (current_number == 1) {
           fake_led_off();
-          LED1_ON();
-          morze_count++;
-          if (morze_count < 5) {
+          LED1_ON();          
+          if (morze_count < 4) {
+            morze_count++;
             current_number = eeprom_read_byte(morze[morze_count]);
-            puts_P(PSTR("1")); //send to Host
+            puts_P(PSTR("#1")); //send to Host
           }
           } else {
           morze_count = 0;
           current_number = eeprom_read_byte(morze[0]);
           true_led_off();
           LED2_ON();
+          puts_P(PSTR("?1")); //send to Host, error
         }
         usbPoll();
         break;
@@ -535,17 +546,18 @@ void check_button() {
       case KEY_2: {
         if (current_number == 2) {
           fake_led_off();
-          LED3_ON();
-          morze_count++;
-          if (morze_count < 5) {
+          LED3_ON();          
+          if (morze_count < 4) {
+            morze_count++;
             current_number = eeprom_read_byte(morze[morze_count]);
-            puts_P(PSTR("2")); //send to Host
+            puts_P(PSTR("#2")); //send to Host
           }
           } else {
           morze_count = 0;
           current_number = eeprom_read_byte(morze[0]);
           true_led_off();
           LED4_ON();
+          puts_P(PSTR("?2")); //send to Host, error
         }
         usbPoll();
         break;
@@ -553,41 +565,42 @@ void check_button() {
       case KEY_3: {
         if (current_number == 3) {
           fake_led_off();
-          LED5_ON();
-          morze_count++;
-          if (morze_count < 5) {
+          LED5_ON();         
+          if (morze_count < 4) {
+             morze_count++;
             current_number = eeprom_read_byte(morze[morze_count]);
-            puts_P(PSTR("3")); //send to Host
+            puts_P(PSTR("#3")); //send to Host
           }
           } else {
           morze_count = 0;
           current_number = eeprom_read_byte(morze[0]);
           true_led_off();
           LED6_ON();
+          puts_P(PSTR("?3")); //send to Host, error
         }
         usbPoll();
         break;
       }
       case KEY_4: {
-        if (current_number == 1) {
+        if (current_number == 4) {
           fake_led_off();
-          LED7_ON();
-          morze_count++;
-          if (morze_count < 5) {
+          LED7_ON();         
+          if (morze_count < 4) {
+            morze_count++;
             current_number = eeprom_read_byte(morze[morze_count]);
-            puts_P(PSTR("4")); //send to Host
+            puts_P(PSTR("#4")); //send to Host
           }
           } else {
           morze_count = 0;
           current_number = eeprom_read_byte(morze[0]);
           true_led_off();
           LED8_ON();
+          puts_P(PSTR("?4")); //send to Host, error
         }
         usbPoll();
         break;
       }
-    }
-  }  
+    } 
 }
 
 int main()
@@ -646,6 +659,8 @@ int main()
 
 	while (1) // main loop, do forever
 	{
+
+    check_win();
     
     usbPoll();
 
