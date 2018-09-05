@@ -110,8 +110,7 @@ uint8_t three_morse[] = {0, 0, 0, 1, 1}; //array for 3
 uint8_t four_morse[] = {0, 0, 0, 0, 1}; //array for 4
 uint16_t dotTime = 0xFA0;//0x1458;//0x3D09; //dec 15625 1 second for 16Mhz and prescaler 1024
 
-
-uint8_t seed EEMEM; //variable for function rand()
+//uint8_t seed EEMEM; //variable for function rand()
 uint8_t Num EEMEM;//counter for number of mcu start
 
 // see http://vusb.wikidot.com/driver-api
@@ -379,16 +378,23 @@ void init_cpu() {
   //Init port C
   DDRC |= (1 << PC0)|(1 << PC1); //Pin 0,1 - output
   PORTC &= ~((1 << PC0)|(1 << PC1)); //Set to 0
+
+  //Init port D
+  DDRD |= (1 << PD1)|(1 << PD3)|(1 << PD4)|(1 << PD5)|(1 << PD6)|(1 << PD7); //Pin 1,3,4,5,6,7 - output
+  PORTD &= ~((1 << PD1)|(1 << PD3)|(1 << PD4)|(1 << PD5)|(1 << PD6)); //Set to 0
   
 }
 
-void generate_full_code(uint8_t tmp) {
-  int randomValue = 0;
-  srand(tmp);
-  randomValue = rand();
+void generate_full_code() {
+
+  //next actions counts number of mcu starts
+  uint8_t tmp = eeprom_read_byte(&Num); //read value from eeprom using address of Num
+  if (tmp == 5) tmp = 0;
+  tmp++;
+  eeprom_write_byte(&Num, tmp); //write value of tmp to Num
   
   //generate first number of code
-  if (randomValue < 8191) {    
+  if (tmp == 1) {    
     //4231
     morze[0] = 4;
     morze[1] = 2;
@@ -396,21 +402,21 @@ void generate_full_code(uint8_t tmp) {
     morze[3] = 1;
 
   }
-  if ((randomValue > 8191) & (randomValue < 16382)) {
+  if (tmp == 2) {
     //2143
     morze[0] = 2;
     morze[1] = 1;
     morze[2] = 4;
     morze[3] = 3;
   }
-  if ((randomValue > 16382) & (randomValue < 24573)) {
+  if (tmp == 3) {
     //3142
     morze[0] = 3;
     morze[1] = 1;
     morze[2] = 4;
     morze[3] = 2;
   }
-  if (randomValue > 24573) {
+  if (tmp == 4) {
     //1423
     morze[0] = 1;
     morze[1] = 4;
@@ -601,7 +607,7 @@ void print_address() {
   {    
     //Text message
     puts_P(PSTR("RMCSoft LLC\nCharlotte, NC\n933 Louise Ave., Suite 101S, Charlotte, NC 28204, USA\n(980) 201-2460\n\nNick Gritsenko\nnick@rmcsoft.com\n\nOlga Muller\nolga.z.muller@gmail.com"));
-    puts_P(PSTR("\nNext code will help you solve the quest.\n Code:"));
+    puts_P(PSTR("\nNext code will help you solve the quest.\nCode:"));
     for (char i = 0; i < 4; i++) {
       if (morze[i] == 1) puts_P(PSTR("1"));
       if (morze[i] == 2) puts_P(PSTR("2"));
@@ -700,24 +706,29 @@ void do_morse_signal() {
     play_morse_pause(3); //pause between letter
     check_button();
     usbPoll();
+    send_active_status();
   }
   play_morse_pause(7); //pause between words
   check_button();
   usbPoll();
+  send_active_status();
 }
 
 void play_morse_symbol(uint8_t symbol) {
   timer1_init();
 
-  uint16_t work_time = dotTime;
+  //uint16_t work_time = dotTime;
   switch (symbol) {
     case 1: {
       for (char z = 0; z < 6; z++) {
+        check_button();
         if (one_morse[z] == 1) { //dash
           TCNT1 = 0x00;
           usbPoll();
-          while (TCNT1 < (3 * work_time)) {
-            if (TCNT1 < 2 * work_time) {
+          //while (TCNT1 < (3 * work_time)) {
+          while (TCNT1 < 12000) {
+            //if (TCNT1 < 2 * work_time) {
+            if (TCNT1 < 8000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -728,8 +739,10 @@ void play_morse_symbol(uint8_t symbol) {
         if (one_morse[z] == 0) { //dot
           TCNT1 = 0x00;
           usbPoll();
-          while (TCNT1 < (3 * work_time)) {
-            if (TCNT1 < 2 * work_time) {
+          //while (TCNT1 < (3 * work_time)) {
+          while (TCNT1 < 12000) {
+            //if (TCNT1 < 2 * work_time) {
+            if (TCNT1 < 8000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -745,11 +758,14 @@ void play_morse_symbol(uint8_t symbol) {
     }
     case 2: {
       for (char z = 0; z < 6; z++) {
+        check_button();
         if (two_morse[z] == 1) { //dash
           TCNT1 = 0x00;
           usbPoll();
-          while (TCNT1 < (3 * work_time)) {
-            if (TCNT1 < 2 * work_time) {
+          //while (TCNT1 < (3 * work_time)) {
+          while (TCNT1 < 12000) {
+            //if (TCNT1 < 2 * work_time) {
+            if (TCNT1 < 8000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -760,8 +776,10 @@ void play_morse_symbol(uint8_t symbol) {
         if (two_morse[z] == 0) { //dot
           TCNT1 = 0x00;
           usbPoll();
-          while (TCNT1 < (3 * work_time)) {
-            if (TCNT1 < 2 * work_time) {
+          //while (TCNT1 < (3 * work_time)) {
+          while (TCNT1 < 12000) {
+            //if (TCNT1 < 2 * work_time) {
+            if (TCNT1 < 8000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -777,11 +795,14 @@ void play_morse_symbol(uint8_t symbol) {
     }
     case 3: {
       for (char z = 0; z < 6; z++) {
+        check_button();
         if (three_morse[z] == 1) { //dash
           TCNT1 = 0x00;
           usbPoll();
-          while (TCNT1 < (3 * work_time)) {
-            if (TCNT1 < 2 * work_time) {
+          //while (TCNT1 < (3 * work_time)) {
+          while (TCNT1 < 12000) {
+            //if (TCNT1 < 2 * work_time) {
+            if (TCNT1 < 8000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -792,8 +813,10 @@ void play_morse_symbol(uint8_t symbol) {
         if (three_morse[z] == 0) { //dot
           TCNT1 = 0x00;
           usbPoll();
-          while (TCNT1 < (3 * work_time)) {
-            if (TCNT1 < 2 * work_time) {
+          //while (TCNT1 < (3 * work_time)) {
+          while (TCNT1 < 12000) {
+            //if (TCNT1 < 2 * work_time) {
+            if (TCNT1 < 8000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -809,11 +832,14 @@ void play_morse_symbol(uint8_t symbol) {
     }
     case 4: {
       for (char z = 0; z < 6; z++) {
+        check_button();
         if (four_morse[z] == 1) { //dash
           TCNT1 = 0x00;
           usbPoll();
-          while (TCNT1 < (3 * work_time)) {
-            if (TCNT1 < 2 * work_time) {
+          //while (TCNT1 < (3 * work_time)) {
+          while (TCNT1 < 12000) {
+            //if (TCNT1 < 2 * work_time) {
+            if (TCNT1 < 8000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -824,8 +850,10 @@ void play_morse_symbol(uint8_t symbol) {
         if (four_morse[z] == 0) { //dot
           TCNT1 = 0x00;
           usbPoll();
-          while (TCNT1 < (3 * work_time)) {
-            if (TCNT1 < 2 * work_time) {
+          //while (TCNT1 < (3 * work_time)) {
+          while (TCNT1 < 12000) {
+            //if (TCNT1 < 2 * work_time) {
+            if (TCNT1 < 8000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -851,6 +879,7 @@ void play_morse_pause(char pause) {
       while (TCNT1 < counterValue) {
         usbPoll();
       } //pause for 1 second
+      //usbPoll();
       break;
     }
     case 3: { //pause for 1 second
@@ -886,16 +915,9 @@ int main()
   timer0_init();
 
   //init timer2 for check button
-  //timer2_init();
+  //timer2_init();  
 
-  //next actions counts number of mcu starts
-  uint8_t tmp = eeprom_read_byte(&Num); //read value from eeprom using address of Num
-  tmp++;
-  eeprom_write_byte(&Num, tmp); //write value of tmp to Num
-  eeprom_write_byte(&seed, tmp);
-  tmp = eeprom_read_byte(&seed);
-
-  generate_full_code(tmp);
+  generate_full_code();
 
   current_number = morze[0]; //set first morse number as default
   
@@ -917,30 +939,17 @@ int main()
 	sei(); // enable interrupts
 
 	while (1) // main loop, do forever
-	{    
-    BUT_Debrief();
+	{  
 
     check_button();
 
     send_active_status();
-
-    check_win();
     
     usbPoll();
-
-    BUT_Debrief();
-
-    check_button();
 
 		print_address();                
     
     do_morse_signal();
-    
-    check_button();    		
-		
-		usbPoll();
-    
-    BUT_Debrief(); 
 		
 	}
 	

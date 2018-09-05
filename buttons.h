@@ -35,7 +35,7 @@
 #define KEY_4         4    /*BUTTON4*/
 
 //сколько циклов опроса кнопка должна удерживаться
-#define THRESHOLD 20
+#define THRESHOLD 5
 /**************************************************************************
 *   Function name : BUT_Init
 *   Returns :       нет
