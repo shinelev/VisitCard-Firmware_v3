@@ -100,6 +100,8 @@ static uint8_t LED_state = 0; // see HID1_11.pdf appendix B section 1
 static uint8_t blink_count = 0; // keep track of how many times caps lock have toggled
 
 unsigned char key; //current key
+char timer2_counter = 0;
+char pause_flag = 0;
 uint8_t morze_count = 0; //variable-flag when guessing morse
 uint8_t current_number = 0; //current number for morze code
 uint8_t morze[4]; //array of morse code in RAM
@@ -483,22 +485,33 @@ ISR(TIMER0_OVF_vect) {
 void timer1_init() {
   //init 16bit T1 Counter, 1 sec = TCNT < 15625
   TCCR1A = 0x00;
-  TCCR1B = 0x05; //Prescaler 1024
+  TCCR1B |= (1 << CS10)|(1 << CS11)|(1 << CS12)|(1 << WGM12); //Prescaler 1024, CTC
+  OCR1A = 0x2EE0; //12000
+  OCR1B = 0x1F40; //8000
+  TIMSK |= (1 << OCIE1A)|(1 << OCIE1B);
   TCNT1 = 0x00;
 }
 
-/*
+//interrupt TCNT1 == 12000
+ISR(TIMER1_COMPA_vect){ 
+
+}
+
+//interrupt TCNT1 == 8000
+ISR(TIMER1_COMPB_vect){
+
+}
+
 void timer2_init() {
-  TCCR2 |= (1 << CS20)|(1 << CS21)|(1 << CS22);
-  TCNT2 =0;
+  TCCR2 |= (1 << CS20)|(1 << CS21)|(1 << CS22);  
   TIMSK |= (1 << TOIE2); //enable overflow interrupt
 }
 
+//for pause
 ISR(TIMER2_OVF_vect){
-  usbPoll();
-  BUT_Debrief();
-  check_button();
-}*/
+  timer2_counter++;
+  TCNT2 = 0;
+}
 
 void check_win() {
   if (morze_count == 4) {        
@@ -716,8 +729,7 @@ void do_morse_signal() {
 
 void play_morse_symbol(uint8_t symbol) {
   timer1_init();
-
-  //uint16_t work_time = dotTime;
+  
   switch (symbol) {
     case 1: {
       for (char z = 0; z < 6; z++) {
@@ -725,8 +737,15 @@ void play_morse_symbol(uint8_t symbol) {
         if (one_morse[z] == 1) { //dash
           TCNT1 = 0x00;
           usbPoll();
+          LED10_ON(); //fake
+          LED9_ON();
+          if (TCNT1 >= 8000) LED10_OFF(); //fake
+          if (TCNT1 >= 12000) {
+            LED9_OFF();
+            usbPoll();
+          }
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          /*while (TCNT1 < 12000) {
             //if (TCNT1 < 2 * work_time) {
             if (TCNT1 < 8000) {
               LED10_ON();
@@ -734,7 +753,7 @@ void play_morse_symbol(uint8_t symbol) {
             LED9_ON();
             usbPoll();
           }
-          LED9_OFF();
+          LED9_OFF();*/
         }
         if (one_morse[z] == 0) { //dot
           TCNT1 = 0x00;
@@ -870,29 +889,29 @@ void play_morse_symbol(uint8_t symbol) {
   }
 }
 
-void play_morse_pause(char pause) {
-  TCNT1 = 0x00;
-  uint16_t counterValue = dotTime;
+void play_morse_pause(char pause) {  
   usbPoll();
   switch (pause) {
     case 1: {
-      while (TCNT1 < counterValue) {
-        usbPoll();
-      } //pause for 1 second
-      //usbPoll();
+      timer2_init();
+      if (timer2_counter = 15) {
+        timer2_counter = 0; //clear counter for interrupt
+        pause_flag = 1; //set flag pause is done
+      }      
       break;
     }
     case 3: { //pause for 1 second
-      for (char i = 1; i <= pause; i++) {
-        while (TCNT1 < counterValue) {
-          LED10_ON();
-          usbPoll();
-        }
+      
+      LED10_ON();
+      if (timer2_counter > 15) & (timer2_counter < 47) {
+          timer2_counter = 0; //clear counter for interrupt          
       }
+      pause_flag = 1; //set flag pause is done
+
       LED10_OFF();
       break;
     }
-    case 7: { //pause for 3 second
+    case 7: { //pause for 3 second 109
       for (char i = 1; i <= pause; i++) {
         while (TCNT1 < counterValue) {
           usbPoll();
