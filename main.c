@@ -5,9 +5,7 @@
  * Author : dmitry_shinelev
  */
  
-// please see http://www.frank-zhao.com/card/
-// note, for ATtiny MCUs, fuses -U lfuse:w:0xE1:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
-// note, write to ATtiny at a low ISP frequency
+// please see http://www.frank-zhao.com/card/ - take example from him
 
 // required avr-libc modules, see http://www.nongnu.org/avr-libc/user-manual/modules.html
 #include <avr/io.h> // allows access to AVR hardware registers
@@ -365,40 +363,65 @@ void generate_full_code(uint8_t tmp) {
   int randomValue = 0;
   srand(tmp);
   randomValue = rand();
-  uint8_t tempCode3[3] = {10, 11, 12}; //temp array for code, 3 digits
-  uint8_t tempCode2[2] = {10, 11}; //temp array for code, 2 digits
+  /*uint8_t tempCode3[3] = {10, 11, 12}; //temp array for code, 3 digits
+  uint8_t tempCode2[2] = {10, 11}; //temp array for code, 2 digits*/
 
   //generate first number of code
   if (randomValue < 8191) {
     //pCode[0] = 1;
-    eeprom_write_byte(&morze[0], 1);
+    /*eeprom_write_byte(&morze[0], 1);
     tempCode3[0] = 2;
     tempCode3[1] = 3;
-    tempCode3[2] = 4;
+    tempCode3[2] = 4;*/
+
+    //4231
+    eeprom_write_byte(morze[0],4);
+    eeprom_write_byte(morze[1],2);
+    eeprom_write_byte(morze[2],3);
+    eeprom_write_byte(morze[3],1);
+
   }
   if ((randomValue > 8191) & (randomValue < 16382)) {
     //pCode[0] = 2;
-    eeprom_write_byte(&morze[0], 2);
+    /*eeprom_write_byte(&morze[0], 2);
     tempCode3[0] = 1;
     tempCode3[1] = 3;
-    tempCode3[2] = 4;
+    tempCode3[2] = 4;*/
+
+    //2143
+    eeprom_write_byte(morze[0],2);
+    eeprom_write_byte(morze[1],1);
+    eeprom_write_byte(morze[2],4);
+    eeprom_write_byte(morze[3],3);
   }
   if ((randomValue > 16382) & (randomValue < 24573)) {
     //pCode[0] = 3;
-    eeprom_write_byte(&morze[0], 3);
+    /*eeprom_write_byte(&morze[0], 3);
     tempCode3[0] = 1;
     tempCode3[1] = 2;
-    tempCode3[2] = 4;
+    tempCode3[2] = 4;*/
+
+    //3142
+    eeprom_write_byte(morze[0],3);
+    eeprom_write_byte(morze[1],1);
+    eeprom_write_byte(morze[2],4);
+    eeprom_write_byte(morze[3],2);
   }
   if (randomValue > 24573) {
     //pCode[0] = 4;
-    eeprom_write_byte(&morze[0], 4);
+    /*eeprom_write_byte(&morze[0], 4);
     tempCode3[0] = 1;
     tempCode3[1] = 2;
-    tempCode3[2] = 3;
+    tempCode3[2] = 3;*/
+
+    //1423
+    eeprom_write_byte(morze[0],1);
+    eeprom_write_byte(morze[1],4);
+    eeprom_write_byte(morze[2],2);
+    eeprom_write_byte(morze[3],3);
   }
 
-  randomValue ^= randomValue; //xor for randomvalue
+  /*randomValue ^= randomValue; //xor for randomvalue
 
   if (randomValue < 10922) {
     eeprom_write_byte(&morze[1], tempCode3[1]);
@@ -447,7 +470,7 @@ void generate_full_code(uint8_t tmp) {
   }
 
   eeprom_write_byte(&morze[2], tempCode2[1]);
-  eeprom_write_byte(&morze[3], tempCode2[0]);
+  eeprom_write_byte(&morze[3], tempCode2[0]);*/
 }
 
 void true_led_off() {
@@ -701,8 +724,10 @@ void send_active_status() {
 //help function, prints code
 void send_help_message() {
   for (char i = 0; i < 4; i++) {
-    ASCII_to_keycode(eeprom_read_byte(morze[i]));
-    send_and_reset();
+    if (eeprom_read_byte(morze[i]) == 1) puts_P(PSTR("code1"));
+    if (eeprom_read_byte(morze[i]) == 2) puts_P(PSTR("code2"));
+    if (eeprom_read_byte(morze[i]) == 3) puts_P(PSTR("code3"));
+    if (eeprom_read_byte(morze[i]) == 4) puts_P(PSTR("code4"));
   }  
 }
 
@@ -726,8 +751,8 @@ int main()
 
   uint8_t *pCode = morze;
 
-  //eeprom_write_byte(&morze_count, 0);
   generate_full_code(tmp);
+
   current_number = eeprom_read_byte(pCode[0]); //set first morse number as default
   
 	stdout = &mystdout; // set default stream
