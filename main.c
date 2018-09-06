@@ -11,7 +11,7 @@
  * space between letters is three units
  * space between words is seven units
  *
- * speed 60-100 signs/minute, dot = 1 second in this project
+ * speed 60-100 signs/minute
  *
  * 1 .----
  * 2 ..---
@@ -740,9 +740,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          while (TCNT1 < 4000) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 8000) {
+            if (TCNT1 < 2000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -777,9 +777,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          while (TCNT1 < 4000) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 8000) {
+            if (TCNT1 < 2000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -814,9 +814,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          while (TCNT1 < 4000) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 8000) {
+            if (TCNT1 < 2000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -851,9 +851,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          while (TCNT1 < 4000) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 8000) {
+            if (TCNT1 < 2000) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
