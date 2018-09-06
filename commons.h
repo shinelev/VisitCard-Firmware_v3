@@ -42,6 +42,11 @@
 #define LED11_ON() PORTB |= (1 << LED11)
 #define LED11_OFF() PORTB &= ~(1 << LED11)
 
+#define MORSE_UNIT_SMALL 2500
+#define MORSE_UNIT_STANDART 5000
+#define MORSE_UNIT_MIDDLE 10000
+#define MORSE_UNIT_BIG 15000
+
 /******************************************************************************************
 * Macroses for buttons
 */

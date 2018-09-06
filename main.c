@@ -34,6 +34,7 @@
 #include <stdio.h> // allows streaming strings
 #include <stdlib.h>
 #include <stdint.h>
+#include <avr/fuse.h>
 
 // configure settings for V-USB then include the V-USB driver so V-USB uses your settings
 #include "usbconfig.h"
@@ -44,6 +45,16 @@
 
 //my files
 #include "commons.h"
+
+
+/****************************
+* FUSES
+****************************/
+FUSES =
+{
+  .low = 0xFF,
+  .high = HFUSE_DEFAULT,
+};
 
 // USB HID report descriptor for boot protocol keyboard
 // see HID1_11.pdf appendix B section 1
@@ -425,6 +436,18 @@ void generate_full_code() {
   }
 }
 
+void morse_led_on() {
+  LED9_ON();
+  LED10_ON();
+  LED11_ON();
+}
+
+void morse_led_off() {
+  LED9_OFF();
+  LED10_OFF();
+  LED11_OFF();
+}
+
 void true_led_off() {
   LED1_OFF();
   LED3_OFF();
@@ -726,9 +749,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          while (TCNT1 < MORSE_UNIT_MIDDLE) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 8000) {
+            if (TCNT1 < MORSE_UNIT_MIDDLE) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -740,9 +763,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 4000) {
+          while (TCNT1 < MORSE_UNIT_STANDART) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 2000) {
+            if (TCNT1 < MORSE_UNIT_SMALL) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -763,9 +786,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          while (TCNT1 < MORSE_UNIT_MIDDLE) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 8000) {
+            if (TCNT1 < MORSE_UNIT_MIDDLE) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -777,9 +800,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 4000) {
+          while (TCNT1 < MORSE_UNIT_STANDART) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 2000) {
+            if (TCNT1 < MORSE_UNIT_SMALL) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -800,9 +823,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          while (TCNT1 < MORSE_UNIT_MIDDLE) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 8000) {
+            if (TCNT1 < MORSE_UNIT_MIDDLE) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -814,9 +837,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 4000) {
+          while (TCNT1 < MORSE_UNIT_STANDART) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 2000) {
+            if (TCNT1 < MORSE_UNIT_SMALL) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -837,9 +860,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 12000) {
+          while (TCNT1 < MORSE_UNIT_MIDDLE) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 8000) {
+            if (TCNT1 < MORSE_UNIT_MIDDLE) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -851,9 +874,9 @@ void play_morse_symbol(uint8_t symbol) {
           TCNT1 = 0x00;
           usbPoll();
           //while (TCNT1 < (3 * work_time)) {
-          while (TCNT1 < 4000) {
+          while (TCNT1 < MORSE_UNIT_STANDART) {
             //if (TCNT1 < 2 * work_time) {
-            if (TCNT1 < 2000) {
+            if (TCNT1 < MORSE_UNIT_SMALL) {
               LED10_ON();
             } else LED10_OFF();
             LED9_ON();
@@ -903,6 +926,17 @@ void play_morse_pause(char pause) {
   }
 }
 
+void timeout_blinking() {
+  _delay_ms(500);
+  for (char y = 0; y < 3; y++) {
+    morse_led_on();
+    _delay_ms(200);
+    morse_led_off();
+    _delay_ms(200);
+  }
+  _delay_ms(500);
+}
+
 int main()
 {	
   //init ports of CPU
@@ -939,7 +973,9 @@ int main()
 	sei(); // enable interrupts
 
 	while (1) // main loop, do forever
-	{  
+	{ 
+  
+    timeout_blinking(); 
 
     check_button();
 
