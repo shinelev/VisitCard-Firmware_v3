@@ -400,7 +400,7 @@ void generate_full_code() {
 
   //next actions counts number of mcu starts
   uint8_t tmp = eeprom_read_byte(&Num); //read value from eeprom using address of Num
-  if (tmp == 5) tmp = 0;
+  if (tmp == 6) tmp = 0;
   tmp++;
   eeprom_write_byte(&Num, tmp); //write value of tmp to Num
   
@@ -429,6 +429,13 @@ void generate_full_code() {
   }
   if (tmp == 4) {
     //1423
+    morze[0] = 1;
+    morze[1] = 4;
+    morze[2] = 2;
+    morze[3] = 3;
+  }
+  if (tmp == 5) {
+    //4312
     morze[0] = 1;
     morze[1] = 4;
     morze[2] = 2;
