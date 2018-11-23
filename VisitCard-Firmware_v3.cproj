@@ -56,11 +56,11 @@
       <ToolName>Simulator</ToolName>
     </com_atmel_avrdbg_tool_simulator>
     <avrtoolinterface>ISP</avrtoolinterface>
-    <avrtoolinterfaceclock>4209</avrtoolinterfaceclock>
+    <avrtoolinterfaceclock>125000</avrtoolinterfaceclock>
     <com_atmel_avrdbg_tool_jtagicemkii>
       <ToolOptions>
         <InterfaceProperties>
-          <IspClock>4209</IspClock>
+          <IspClock>125000</IspClock>
         </InterfaceProperties>
         <InterfaceName>ISP</InterfaceName>
       </ToolOptions>

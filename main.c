@@ -400,7 +400,7 @@ void generate_full_code() {
 
   //next actions counts number of mcu starts
   uint8_t tmp = eeprom_read_byte(&Num); //read value from eeprom using address of Num
-  if (tmp == 6) tmp = 0;
+  if (tmp == 11) tmp = 0;
   tmp++;
   eeprom_write_byte(&Num, tmp); //write value of tmp to Num
   
@@ -436,10 +436,45 @@ void generate_full_code() {
   }
   if (tmp == 5) {
     //4312
+    morze[0] = 4;
+    morze[1] = 3;
+    morze[2] = 1;
+    morze[3] = 2;
+  }
+  if (tmp == 6) {
+    //1324
     morze[0] = 1;
+    morze[1] = 3;
+    morze[2] = 2;
+    morze[3] = 4;
+  }
+  if (tmp == 7) {
+    //3412
+    morze[0] = 3;
     morze[1] = 4;
+    morze[2] = 1;
+    morze[3] = 2;
+  }
+  if (tmp == 8) {
+    //2134
+    morze[0] = 2;
+    morze[1] = 1;
+    morze[2] = 3;
+    morze[3] = 4;
+  }
+  if (tmp == 9) {
+    //4123
+    morze[0] = 4;
+    morze[1] = 1;
     morze[2] = 2;
     morze[3] = 3;
+  }
+  if (tmp == 10) {
+    //3241
+    morze[0] = 3;
+    morze[1] = 2;
+    morze[2] = 4;
+    morze[3] = 1;
   }
 }
 
@@ -636,8 +671,10 @@ void print_address() {
   if (blink_count > 2) // activated by blinking lights
   {    
     //Text message
-    puts_P(PSTR("RMCSoft LLC\nCharlotte, NC\n933 Louise Ave., Suite 101S, Charlotte, NC 28204, USA\n(980) 201-2460\n\nNick Gritsenko\nnick@rmcsoft.com\n\nOlga Muller\nolga.z.muller@gmail.com"));
-    puts_P(PSTR("\nNext code will help you solve the quest.\nCode:"));
+    //puts_P(PSTR("RMCSoft LLC\nCharlotte, NC\n933 Louise Ave., Suite 101S, Charlotte, NC 28204, USA\n(980) 201-2460\n\nNick Gritsenko\nnick@rmcsoft.com\n\nOlga Muller\nolga.z.muller@gmail.com"));
+    //puts_P(PSTR("\nNext code will help you solve the quest.\nCode:"));
+    puts_P(PSTR("Persistence is the quality of winners.\nThe following code will help you solve the quest.\n"));
+    puts_P(PSTR("Code:"));
     for (char i = 0; i < 4; i++) {
       if (morze[i] == 1) puts_P(PSTR("1"));
       if (morze[i] == 2) puts_P(PSTR("2"));
